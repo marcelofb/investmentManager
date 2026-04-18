@@ -2,8 +2,6 @@
 
 Aplicación full-stack para gestionar inversiones personales: plazos fijos en ARS y posiciones en criptomonedas.
 
-**Demo en producción:** https://investment-manager-lake.vercel.app
-
 ## Tecnologías
 
 | Capa | Stack |
