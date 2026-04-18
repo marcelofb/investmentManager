@@ -15,8 +15,8 @@ Aplicación full-stack para gestionar inversiones personales: plazos fijos en AR
 
 | Servicio | Plataforma | URL |
 |---|---|---|
-| Frontend | Vercel | https://investment-manager-lake.vercel.app |
-| Backend | Render | https://investmentmanager.onrender.com |
+| Frontend | Vercel | — |
+| Backend | Render | — |
 | Base de datos | MongoDB Atlas M0 | — |
 | Keep-alive | UptimeRobot | ping cada 5 min a `/api/health` |
 
@@ -102,7 +102,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 ### Frontend
 | Variable | Descripción | Ejemplo |
 |---|---|---|
-| `VITE_API_URL` | URL base del backend (solo producción) | `https://investmentmanager.onrender.com/api` |
+| `VITE_API_URL` | URL base del backend (solo producción) | `https://your-backend.onrender.com/api` |
 | `VITE_APP_PASSWORD` | Contraseña de acceso a la app | `mi_contraseña` |
 
 ## Funcionalidades
