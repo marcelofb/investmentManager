@@ -128,6 +128,14 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 - Soporte de staking con TNA
 - Precios en tiempo real con caché de 5 minutos para evitar rate limiting de CoinGecko
 
+## UptimeRobot
+
+Render apaga los servicios gratuitos tras **15 minutos de inactividad**. Cuando el backend está dormido, la primera petición tarda ~30 segundos en responder (cold start), lo que hace que la app parezca caída.
+
+Para evitarlo, se configura un monitor HTTP en [UptimeRobot](https://uptimerobot.com) que hace ping cada 5 minutos al endpoint `GET /api/health` del backend. Esto mantiene el proceso activo de forma continua sin necesidad de un plan pago en Render.
+
+> Solo es necesario si el backend está en el **plan gratuito de Render**.
+
 ## Notas
 
 - Los IDs de activos deben ser los IDs de CoinGecko (ej: `bitcoin`, `ethereum`, `usd-coin`)
