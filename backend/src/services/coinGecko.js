@@ -1,5 +1,5 @@
 const BASE_URL = 'https://api.coingecko.com/api/v3';
-const CACHE_TTL_MS = 60 * 1000; // 60 segundos
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 const cache = {
   data: {},
