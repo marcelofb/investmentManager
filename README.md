@@ -138,6 +138,6 @@ Para evitarlo, se configura un monitor HTTP en [UptimeRobot](https://uptimerobot
 
 ## Notas
 
-- Los IDs de activos deben ser los IDs de CoinGecko (ej: `bitcoin`, `ethereum`, `usd-coin`)
+- Los IDs de activos deben ser los IDs de CoinGecko (ej: `bitcoin`, `ethereum`, `usd-coin`). Podés consultar la lista completa de IDs en: [https://api.coingecko.com/api/v3/coins/list](https://api.coingecko.com/api/v3/coins/list)
 - La duración de los plazos fijos está fijada en 365 días
 - El tipo de cambio oficial se obtiene de [dolarapi.com](https://dolarapi.com)
