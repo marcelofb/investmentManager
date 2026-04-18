@@ -2,6 +2,8 @@
 
 Aplicación full-stack para gestionar inversiones personales: plazos fijos en ARS y posiciones en criptomonedas.
 
+**Demo en producción:** https://investment-manager-lake.vercel.app
+
 ## Tecnologías
 
 | Capa | Stack |
@@ -10,6 +12,15 @@ Aplicación full-stack para gestionar inversiones personales: plazos fijos en AR
 | Backend | Node.js (ESM), Express 4 |
 | Base de datos | MongoDB + Mongoose 8 |
 | APIs externas | CoinGecko (precios crypto), dolarapi.com (tipo de cambio oficial) |
+
+## Deploy en producción
+
+| Servicio | Plataforma | URL |
+|---|---|---|
+| Frontend | Vercel | https://investment-manager-lake.vercel.app |
+| Backend | Render | https://investmentmanager.onrender.com |
+| Base de datos | MongoDB Atlas M0 | — |
+| Keep-alive | UptimeRobot | ping cada 5 min a `/api/health` |
 
 ## Estructura
 
@@ -44,7 +55,7 @@ investment-manager/
         └── utils/formatters.js
 ```
 
-## Instalación y uso
+## Instalación y uso local
 
 ### Requisitos previos
 - Node.js 18+
@@ -57,11 +68,12 @@ cd backend
 npm install
 ```
 
-Crear el archivo `.env`:
+Crear el archivo `.env` (ver `.env.example`):
 
 ```
 MONGO_URI=mongodb://localhost:27017/investment-manager
 PORT=3001
+CORS_ORIGIN=http://localhost:5173
 ```
 
 ```bash
@@ -77,7 +89,21 @@ npm install
 npm run dev    # inicia en http://localhost:5173
 ```
 
-El frontend tiene configurado un proxy a `localhost:3001`, por lo que ambos servidores deben estar corriendo simultáneamente.
+El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo que ambos servidores deben estar corriendo simultáneamente. En producción, el frontend usa la variable de entorno `VITE_API_URL` para apuntar al backend de Render.
+
+## Variables de entorno
+
+### Backend
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `MONGO_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017/investment-manager` |
+| `PORT` | Puerto del servidor | `3001` |
+| `CORS_ORIGIN` | Origen permitido por CORS | `http://localhost:5173` |
+
+### Frontend
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `VITE_API_URL` | URL base del backend (solo producción) | `https://investmentmanager.onrender.com/api` |
 
 ## Funcionalidades
 
