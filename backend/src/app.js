@@ -10,8 +10,10 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
+
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/plazos-fijos', plazosRouter);
 app.use('/api/cryptos', cryptosRouter);
