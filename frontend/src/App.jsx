@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import { Routes, Route, NavLink } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage.jsx';
 import PlazosFijosPage from './pages/PlazosFijosPage.jsx';
 import CryptosPage from './pages/CryptosPage.jsx';
+import LoginPage from './components/LoginPage.jsx';
 
 export default function App() {
+  const [authed, setAuthed] = useState(() => localStorage.getItem('auth') === '1');
+
+  if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
+
   return (
     <div className="app">
       <nav className="navbar">

@@ -35,7 +35,7 @@ investment-manager/
 │       │   ├── cryptos.js       # CRUD con precios live
 │       │   └── dashboard.js     # Resumen de patrimonio total
 │       └── services/
-│           ├── coinGecko.js     # Precios USD con caché de 60s
+│           ├── coinGecko.js     # Precios USD con caché de 5 min
 │           └── dolarApi.js      # Tipo de cambio oficial ARS/USD
 └── frontend/
     └── src/
@@ -44,6 +44,7 @@ investment-manager/
         │   ├── PlazosFijosPage.jsx
         │   └── CryptosPage.jsx
         ├── components/
+        │   ├── LoginPage.jsx        # Pantalla de login con protección por contraseña
         │   ├── PlazoFijoCard.jsx
         │   ├── PlazoFijoForm.jsx
         │   ├── CryptoCard.jsx
@@ -102,6 +103,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 | Variable | Descripción | Ejemplo |
 |---|---|---|
 | `VITE_API_URL` | URL base del backend (solo producción) | `https://investmentmanager.onrender.com/api` |
+| `VITE_APP_PASSWORD` | Contraseña de acceso a la app | `mi_contraseña` |
 
 ## Funcionalidades
 
@@ -124,7 +126,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 ### Criptomonedas
 - Registro de posiciones por activo (ID de CoinGecko), plataforma y cantidad
 - Soporte de staking con TNA
-- Precios en tiempo real con caché de 60 segundos para evitar rate limiting de CoinGecko
+- Precios en tiempo real con caché de 5 minutos para evitar rate limiting de CoinGecko
 
 ## Notas
 
