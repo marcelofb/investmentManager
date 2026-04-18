@@ -138,6 +138,8 @@ Para evitarlo, se configura un monitor HTTP en [UptimeRobot](https://uptimerobot
 
 ## Notas
 
-- Los IDs de activos deben ser los IDs de CoinGecko (ej: `bitcoin`, `ethereum`, `usd-coin`). Podés consultar la lista completa de IDs en: [https://api.coingecko.com/api/v3/coins/list](https://api.coingecko.com/api/v3/coins/list)
+- Los IDs de activos deben ser los IDs de CoinGecko (ej: `bitcoin`, `ethereum`, `usd-coin`).
+  Para obtener los IDs de las 100 criptomonedas más importantes, consultá:
+  [https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1](https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1)
 - La duración de los plazos fijos está fijada en 365 días
 - El tipo de cambio oficial se obtiene de [dolarapi.com](https://dolarapi.com)
