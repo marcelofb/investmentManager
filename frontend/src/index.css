@@ -414,6 +414,7 @@ body {
 
 .form-control {
   width: 100%;
+  min-width: 0;
   padding: 0.5rem 0.75rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
@@ -423,6 +424,8 @@ body {
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-control:focus {
