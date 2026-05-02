@@ -29,14 +29,20 @@ investment-manager/
 │       ├── app.js               # Entry point, Express + Mongoose
 │       ├── models/
 │       │   ├── PlazoFijo.js
-│       │   └── CryptoPosition.js
+│       │   ├── CryptoPosition.js
+│       │   └── DailySnapshot.js  # Snapshot diario para variación de patrimonio
 │       ├── routes/
 │       │   ├── plazos.js        # CRUD + precancelación + historial
 │       │   ├── cryptos.js       # CRUD con precios live
 │       │   └── dashboard.js     # Resumen de patrimonio total
+│       ├── jobs/
+│       │   └── dailyTelegramReportJob.js  # Envío diario programado a Telegram
 │       └── services/
 │           ├── coinGecko.js     # Precios USD con caché de 5 min
-│           └── dolarApi.js      # Tipo de cambio oficial ARS/USD
+│           ├── dolarApi.js      # Tipo de cambio oficial ARS/USD
+│           ├── patrimonioService.js  # Cálculo centralizado de patrimonio
+│           ├── dailySummaryFormatter.js  # Formato de mensaje Telegram
+│           └── telegramReporter.js  # Cliente Telegram Bot API
 └── frontend/
     └── src/
         ├── pages/
@@ -73,6 +79,11 @@ Crear el archivo `.env` (ver `.env.example`):
 MONGO_URI=mongodb://localhost:27017/investment-manager
 PORT=3001
 CORS_ORIGIN=http://localhost:5173
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+DAILY_REPORT_CRON=0 8 * * *
+REPORT_TIMEZONE=America/Argentina/Buenos_Aires
+REPORT_TRIGGER_TOKEN=
 ```
 
 ```bash
@@ -98,6 +109,11 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 | `MONGO_URI` | URI de conexión a MongoDB | `mongodb://localhost:27017/investment-manager` |
 | `PORT` | Puerto del servidor | `3001` |
 | `CORS_ORIGIN` | Origen permitido por CORS | `http://localhost:5173` |
+| `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram | `123456:ABCDEF...` |
+| `TELEGRAM_CHAT_ID` | Chat ID de destino (chat privado, grupo o canal) | `123456789` |
+| `DAILY_REPORT_CRON` | Expresión cron del envío diario | `0 8 * * *` |
+| `REPORT_TIMEZONE` | Zona horaria usada por el scheduler | `America/Argentina/Buenos_Aires` |
+| `REPORT_TRIGGER_TOKEN` | Token opcional para disparo manual por API | `token-seguro` |
 
 ### Frontend
 | Variable | Descripción | Ejemplo |
@@ -135,6 +151,43 @@ Render apaga los servicios gratuitos tras **15 minutos de inactividad**. Cuando 
 Para evitarlo, se configura un monitor HTTP en [UptimeRobot](https://uptimerobot.com) que hace ping cada 5 minutos al endpoint `GET /api/health` del backend. Esto mantiene el proceso activo de forma continua sin necesidad de un plan pago en Render.
 
 > Solo es necesario si el backend está en el **plan gratuito de Render**.
+
+## Reporte diario por Telegram
+
+El backend envía un resumen diario de patrimonio por Telegram con:
+- Patrimonio total en USD
+- Variación diaria absoluta y porcentual respecto del último snapshot
+
+### Configuración inicial (una sola vez)
+1. Crear un bot con BotFather y copiar el token.
+2. Obtener el chat ID de tu cuenta (chat privado) y cargarlo en `TELEGRAM_CHAT_ID`.
+3. Configurar variables en Render:
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+   - `DAILY_REPORT_CRON=0 8 * * *`
+   - `REPORT_TIMEZONE=America/Argentina/Buenos_Aires`
+   - `REPORT_TRIGGER_TOKEN` (recomendado)
+
+### Cómo funciona
+- El scheduler se inicia al levantar el backend.
+- Por defecto corre todos los días a las 08:00 (Argentina).
+- Evita envíos duplicados en el mismo día.
+- Guarda un snapshot diario en MongoDB para calcular variación contra el día anterior.
+
+### Prueba manual del envío
+
+Podés disparar el reporte sin esperar al cron:
+
+```bash
+curl -X POST https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger \
+  -H "x-report-trigger-token: TU_REPORT_TRIGGER_TOKEN"
+```
+
+Si `REPORT_TRIGGER_TOKEN` no está configurado, el endpoint acepta la llamada sin header.
+
+### Render + UptimeRobot
+
+Como ya usás UptimeRobot para mantener el servicio activo en Render free, el cron in-process del backend se mantiene vivo y puede ejecutar el envío diario de forma estable.
 
 ## Notas
 
