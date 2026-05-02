@@ -183,11 +183,21 @@ curl -X POST https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger 
   -H "x-report-trigger-token: TU_REPORT_TRIGGER_TOKEN"
 ```
 
-Si `REPORT_TRIGGER_TOKEN` no está configurado, el endpoint acepta la llamada sin header.
+Ese trigger no fuerza un reenvío si ya se envió hoy. Si querés forzar explícitamente (por ejemplo para pruebas), usá:
+
+```bash
+curl -X POST "https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger?force=true" \
+  -H "x-report-trigger-token: TU_REPORT_TRIGGER_TOKEN"
+```
 
 ### Render + UptimeRobot
 
 Como ya usás UptimeRobot para mantener el servicio activo en Render free, el cron in-process del backend se mantiene vivo y puede ejecutar el envío diario de forma estable.
+
+### Si aparece CoinGecko 429
+
+El backend aplica reintentos automáticos con backoff y usa caché de precios como fallback.
+Además, guarda precios exitosos en MongoDB para poder reutilizarlos si CoinGecko vuelve a limitar solicitudes tras un reinicio.
 
 ## Notas
 

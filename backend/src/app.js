@@ -31,7 +31,8 @@ app.post('/api/reports/daily-telegram/trigger', async (req, res) => {
       return res.status(401).json({ ok: false, error: 'Unauthorized' });
     }
 
-    const result = await runDailyTelegramReport({ force: true });
+    const force = req.query.force === 'true' || req.query.force === '1';
+    const result = await runDailyTelegramReport({ force });
     res.json({ ok: true, result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
