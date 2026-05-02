@@ -196,8 +196,8 @@ Como ya usás UptimeRobot para mantener el servicio activo en Render free, el cr
 
 ### Si aparece CoinGecko 429
 
-El backend aplica reintentos automáticos con backoff y usa caché de precios como fallback.
-Además, guarda precios exitosos en MongoDB para poder reutilizarlos si CoinGecko vuelve a limitar solicitudes tras un reinicio.
+El backend usa caché de precios en memoria como fallback.
+Si CoinGecko falla y existe caché previa, se reutiliza esa información para evitar cortes en la app.
 
 ## Notas
 
