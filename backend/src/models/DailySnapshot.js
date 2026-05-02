@@ -9,6 +9,4 @@ const dailySnapshotSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-dailySnapshotSchema.index({ dateKey: 1 }, { unique: true });
-
 export default mongoose.model('DailySnapshot', dailySnapshotSchema);
