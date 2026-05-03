@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.coingecko.com/api/v3';
+const BASE_URL = 'https://api.coincap.io/v2';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
 const cache = {
@@ -20,21 +20,26 @@ export async function getPrices(ids) {
     return cache.data;
   }
 
-  const idsStr = uniqueIds.join(',');
-  const params = new URLSearchParams({
-    ids: idsStr,
-    vs_currencies: 'usd',
+  const params = new URLSearchParams({ ids: uniqueIds.join(',') });
+  const url = `${BASE_URL}/assets?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json' },
   });
-  const url = `${BASE_URL}/simple/price?${params.toString()}`;
-  const res = await fetch(url);
 
   if (!res.ok) {
     // Si hay caché aunque sea vencida, devolverla en lugar de fallar
+    console.error(`CoinCap API error: ${res.status}`);
     if (cache.timestamp) return cache.data;
-    throw new Error(`CoinGecko API error: ${res.status}`);
+    throw new Error(`CoinCap API error: ${res.status}`);
   }
 
-  const fresh = await res.json();
+  const json = await res.json();
+  // Convertir formato CoinCap { data: [{ id, priceUsd }] }
+  // al formato esperado: { bitcoin: { usd: 60000 }, ... }
+  const fresh = {};
+  for (const asset of json.data ?? []) {
+    fresh[asset.id] = { usd: parseFloat(asset.priceUsd) };
+  }
   // Merge con caché existente para no perder otros activos ya cacheados
   cache.data = { ...cache.data, ...fresh };
   cache.timestamp = Date.now();
