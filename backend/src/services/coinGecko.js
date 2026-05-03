@@ -49,6 +49,12 @@ const COINGECKO_TO_BINANCE = {
   'pyth-network': 'PYTHUSDT',
 };
 
+// Stablecoins que siempre valen $1 (no tienen par en Binance contra sí mismas)
+const STABLECOINS = new Set([
+  'tether', 'usd-coin', 'dai', 'binance-usd', 'true-usd',
+  'pax-dollar', 'usdd', 'frax', 'gemini-dollar', 'first-digital-usd',
+]);
+
 function toBinanceSymbol(geckoId) {
   return COINGECKO_TO_BINANCE[geckoId] ?? `${geckoId.replace(/-/g, '').toUpperCase()}USDT`;
 }
@@ -59,14 +65,24 @@ const cache = {
 };
 
 async function fetchBinancePrices(geckoIds) {
-  const symbolToId = Object.fromEntries(geckoIds.map((id) => [toBinanceSymbol(id), id]));
+  // Separar stablecoins (precio fijo $1) del resto
+  const stableResult = {};
+  const toFetch = [];
+  for (const id of geckoIds) {
+    if (STABLECOINS.has(id)) stableResult[id] = { usd: 1.0 };
+    else toFetch.push(id);
+  }
+
+  if (toFetch.length === 0) return stableResult;
+
+  const symbolToId = Object.fromEntries(toFetch.map((id) => [toBinanceSymbol(id), id]));
   const symbols = Object.keys(symbolToId);
   const url = `${BASE_URL}/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
 
   if (res.ok) {
     const json = await res.json();
-    const result = {};
+    const result = { ...stableResult };
     for (const item of json) {
       const geckoId = symbolToId[item.symbol];
       if (geckoId) result[geckoId] = { usd: parseFloat(item.price) };
@@ -75,13 +91,13 @@ async function fetchBinancePrices(geckoIds) {
   }
 
   // Si el batch falla (ej: símbolo inválido), intentar de a uno
-  if (geckoIds.length === 1) {
-    console.warn(`Binance: símbolo no encontrado para "${geckoIds[0]}" (${symbols[0]})`);
-    return {};
+  if (toFetch.length === 1) {
+    console.warn(`Binance: símbolo no encontrado para "${toFetch[0]}" (${symbols[0]})`);
+    return stableResult;
   }
 
-  const results = await Promise.all(geckoIds.map((id) => fetchBinancePrices([id])));
-  return Object.assign({}, ...results);
+  const results = await Promise.all(toFetch.map((id) => fetchBinancePrices([id])));
+  return Object.assign({ ...stableResult }, ...results);
 }
 
 export async function getPrices(ids) {
