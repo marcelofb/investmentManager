@@ -57,7 +57,7 @@ export default function CryptoForm({ initial, onSubmit, onCancel, loading }) {
     <form onSubmit={handleSubmit}>
       <div className="form-group">
         <label>
-          Activo <span className="helper">(ID de CoinGecko)</span>
+          Activo <span className="helper">(ej: bitcoin, ethereum, solana)</span>
         </label>
         <input
           className={`form-control ${errors.activo ? 'error' : ''}`}
