@@ -1,105 +1,65 @@
-const BASE_URL = 'https://api.binance.com/api/v3';
+const BASE_URL = 'https://min-api.cryptocompare.com/data';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
 
-// Mapa de IDs de CoinGecko a símbolos de Binance
-const COINGECKO_TO_BINANCE = {
-  'bitcoin': 'BTCUSDT',
-  'ethereum': 'ETHUSDT',
-  'solana': 'SOLUSDT',
-  'binancecoin': 'BNBUSDT',
-  'ripple': 'XRPUSDT',
-  'cardano': 'ADAUSDT',
-  'dogecoin': 'DOGEUSDT',
-  'shiba-inu': 'SHIBUSDT',
-  'polkadot': 'DOTUSDT',
-  'avalanche-2': 'AVAXUSDT',
-  'matic-network': 'MATICUSDT',
-  'polygon-ecosystem-token': 'POLUSDT',
-  'chainlink': 'LINKUSDT',
-  'uniswap': 'UNIUSDT',
-  'litecoin': 'LTCUSDT',
-  'cosmos': 'ATOMUSDT',
-  'near': 'NEARUSDT',
-  'arbitrum': 'ARBIUSDT',
-  'optimism': 'OPUSDT',
-  'sui': 'SUIUSDT',
-  'aptos': 'APTUSDT',
-  'pepe': 'PEPEUSDT',
-  'wrapped-bitcoin': 'WBTCUSDT',
-  'bitcoin-cash': 'BCHUSDT',
-  'stellar': 'XLMUSDT',
-  'tron': 'TRXUSDT',
-  'monero': 'XMRUSDT',
-  'ethereum-classic': 'ETCUSDT',
-  'filecoin': 'FILUSDT',
-  'internet-computer': 'ICPUSDT',
-  'hedera-hashgraph': 'HBARUSDT',
-  'the-graph': 'GRTUSDT',
-  'aave': 'AAVEUSDT',
-  'maker': 'MKRUSDT',
-  'fantom': 'FTMUSDT',
-  'algorand': 'ALGOUSDT',
-  'vechain': 'VETUSDT',
-  'render-token': 'RENDERUSDT',
-  'injective-protocol': 'INJUSDT',
-  'sei-network': 'SEIUSDT',
-  'celestia': 'TIAUSDT',
-  'bonk': 'BONKUSDT',
-  'jupiter-exchange-solana': 'JUPUSDT',
-  'pyth-network': 'PYTHUSDT',
+// Mapa de IDs de CoinGecko a tickers de CryptoCompare
+const COINGECKO_TO_CC = {
+  'bitcoin': 'BTC',
+  'ethereum': 'ETH',
+  'tether': 'USDT',
+  'solana': 'SOL',
+  'binancecoin': 'BNB',
+  'ripple': 'XRP',
+  'cardano': 'ADA',
+  'dogecoin': 'DOGE',
+  'shiba-inu': 'SHIB',
+  'polkadot': 'DOT',
+  'avalanche-2': 'AVAX',
+  'matic-network': 'MATIC',
+  'polygon-ecosystem-token': 'POL',
+  'chainlink': 'LINK',
+  'uniswap': 'UNI',
+  'litecoin': 'LTC',
+  'cosmos': 'ATOM',
+  'near': 'NEAR',
+  'arbitrum': 'ARB',
+  'optimism': 'OP',
+  'sui': 'SUI',
+  'aptos': 'APT',
+  'pepe': 'PEPE',
+  'wrapped-bitcoin': 'WBTC',
+  'bitcoin-cash': 'BCH',
+  'stellar': 'XLM',
+  'tron': 'TRX',
+  'monero': 'XMR',
+  'ethereum-classic': 'ETC',
+  'filecoin': 'FIL',
+  'internet-computer': 'ICP',
+  'hedera-hashgraph': 'HBAR',
+  'the-graph': 'GRT',
+  'aave': 'AAVE',
+  'maker': 'MKR',
+  'fantom': 'FTM',
+  'algorand': 'ALGO',
+  'vechain': 'VET',
+  'render-token': 'RENDER',
+  'injective-protocol': 'INJ',
+  'sei-network': 'SEI',
+  'celestia': 'TIA',
+  'bonk': 'BONK',
+  'jupiter-exchange-solana': 'JUP',
+  'pyth-network': 'PYTH',
+  'usd-coin': 'USDC',
+  'dai': 'DAI',
 };
 
-// Stablecoins que siempre valen $1 (no tienen par en Binance contra sí mismas)
-const STABLECOINS = new Set([
-  'tether', 'usd-coin', 'dai', 'binance-usd', 'true-usd',
-  'pax-dollar', 'usdd', 'frax', 'gemini-dollar', 'first-digital-usd',
-]);
-
-function toBinanceSymbol(geckoId) {
-  return COINGECKO_TO_BINANCE[geckoId] ?? `${geckoId.replace(/-/g, '').toUpperCase()}USDT`;
+function toCCSymbol(geckoId) {
+  return COINGECKO_TO_CC[geckoId] ?? geckoId.replace(/-/g, '').toUpperCase();
 }
 
 const cache = {
   data: {},
   timestamp: null,
 };
-
-async function fetchBinancePrices(geckoIds) {
-  // Separar stablecoins (precio fijo $1) del resto
-  const stableResult = {};
-  const toFetch = [];
-  for (const id of geckoIds) {
-    if (STABLECOINS.has(id)) stableResult[id] = { usd: 1.0 };
-    else toFetch.push(id);
-  }
-
-  if (toFetch.length === 0) return stableResult;
-
-  const symbolToId = Object.fromEntries(toFetch.map((id) => [toBinanceSymbol(id), id]));
-  const symbols = Object.keys(symbolToId);
-  const url = `${BASE_URL}/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  console.log(`[Binance] status=${res.status} symbols=${symbols.join(',')}`);
-
-  if (res.ok) {
-    const json = await res.json();
-    const result = { ...stableResult };
-    for (const item of json) {
-      const geckoId = symbolToId[item.symbol];
-      if (geckoId) result[geckoId] = { usd: parseFloat(item.price) };
-    }
-    return result;
-  }
-
-  // Si el batch falla (ej: símbolo inválido), intentar de a uno
-  if (toFetch.length === 1) {
-    console.warn(`Binance: símbolo no encontrado para "${toFetch[0]}" (${symbols[0]})`);
-    return stableResult;
-  }
-
-  const results = await Promise.all(toFetch.map((id) => fetchBinancePrices([id])));
-  return Object.assign({ ...stableResult }, ...results);
-}
 
 export async function getPrices(ids) {
   if (!ids || ids.length === 0) return {};
@@ -115,13 +75,30 @@ export async function getPrices(ids) {
     return cache.data;
   }
 
+  const symbolToId = Object.fromEntries(uniqueIds.map((id) => [toCCSymbol(id), id]));
+  const fsyms = Object.keys(symbolToId).join(',');
+  const url = `${BASE_URL}/pricemulti?fsyms=${fsyms}&tsyms=USD`;
+
   try {
-    const fresh = await fetchBinancePrices(uniqueIds);
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!res.ok) {
+      console.error(`CryptoCompare API error: ${res.status}`);
+      if (cache.timestamp) return cache.data;
+      throw new Error(`CryptoCompare API error: ${res.status}`);
+    }
+
+    const json = await res.json();
+    // Convertir { BTC: { USD: 78000 } } → { bitcoin: { usd: 78000 } }
+    const fresh = {};
+    for (const [symbol, prices] of Object.entries(json)) {
+      const geckoId = symbolToId[symbol];
+      if (geckoId && prices.USD != null) fresh[geckoId] = { usd: prices.USD };
+    }
     cache.data = { ...cache.data, ...fresh };
     cache.timestamp = Date.now();
     return cache.data;
   } catch (err) {
-    console.error(`Binance API error: ${err.message}`);
+    console.error(`CryptoCompare fetch error: ${err.message}`);
     if (cache.timestamp) return cache.data;
     throw err;
   }
