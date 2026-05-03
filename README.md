@@ -113,7 +113,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 | `TELEGRAM_CHAT_ID` | Chat ID de destino (chat privado, grupo o canal) | `123456789` |
 | `DAILY_REPORT_CRON` | Expresión cron del envío diario | `0 8 * * *` |
 | `REPORT_TIMEZONE` | Zona horaria usada por el scheduler | `America/Argentina/Buenos_Aires` |
-| `REPORT_TRIGGER_TOKEN` | Token opcional para disparo manual por API | `token-seguro` |
+| `REPORT_TRIGGER_TOKEN` | Token obligatorio para disparo manual por API | `token-seguro` |
 
 ### Frontend
 | Variable | Descripción | Ejemplo |
@@ -166,7 +166,7 @@ El backend envía un resumen diario de patrimonio por Telegram con:
    - `TELEGRAM_CHAT_ID`
    - `DAILY_REPORT_CRON=0 8 * * *`
    - `REPORT_TIMEZONE=America/Argentina/Buenos_Aires`
-   - `REPORT_TRIGGER_TOKEN` (recomendado)
+  - `REPORT_TRIGGER_TOKEN` (obligatorio para trigger manual)
 
 ### Cómo funciona
 - El scheduler se inicia al levantar el backend.
@@ -182,6 +182,9 @@ Podés disparar el reporte sin esperar al cron:
 curl -X POST https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger \
   -H "x-report-trigger-token: TU_REPORT_TRIGGER_TOKEN"
 ```
+
+Si no enviás ese header, o no coincide con `REPORT_TRIGGER_TOKEN`, la API responde `401 Unauthorized`.
+Si `REPORT_TRIGGER_TOKEN` no está configurado en el servidor, la API responde `503`.
 
 Ese trigger no fuerza un reenvío si ya se envió hoy. Si querés forzar explícitamente (por ejemplo para pruebas), usá:
 
