@@ -79,6 +79,7 @@ async function fetchBinancePrices(geckoIds) {
   const symbols = Object.keys(symbolToId);
   const url = `${BASE_URL}/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  console.log(`[Binance] status=${res.status} symbols=${symbols.join(',')}`);
 
   if (res.ok) {
     const json = await res.json();
