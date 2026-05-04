@@ -44,7 +44,9 @@ export async function runDailyTelegramReport({ force = false } = {}) {
     return { sent: false, reason: 'already_sent_today', dateKey };
   }
 
+  console.info('[daily-telegram-report] Obteniendo snapshot de patrimonio...');
   const snapshot = await getPatrimonioSnapshot();
+  console.info(`[daily-telegram-report] Snapshot obtenido: $${snapshot.patrimonioTotalUSD}`);
   const previousSnapshot = await getPreviousSnapshot(dateKey);
 
   const message = buildDailySummaryMessage({
@@ -54,6 +56,7 @@ export async function runDailyTelegramReport({ force = false } = {}) {
     previousPatrimonioTotalUSD: previousSnapshot?.patrimonioTotalUSD,
   });
 
+  console.info('[daily-telegram-report] Enviando mensaje a Telegram...');
   await sendTelegramMessage(message);
 
   await DailySnapshot.findOneAndUpdate(
