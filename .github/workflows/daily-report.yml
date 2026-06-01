@@ -1,0 +1,32 @@
+name: Daily Telegram Report
+
+on:
+  schedule:
+    # 13:00 UTC = 10:00 America/Argentina/Buenos_Aires
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force report even if already sent today'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wake server and send daily report
+        run: |
+          FORCE="${{ github.event.inputs.force || 'false' }}"
+          URL="${{ secrets.BACKEND_URL }}/api/reports/daily-telegram/trigger"
+          if [ "$FORCE" = "true" ]; then
+            URL="${URL}?force=true"
+          fi
+
+          echo "Calling $URL ..."
+          curl --fail --max-time 120 --retry 3 --retry-delay 10 \
+            -X POST "$URL" \
+            -H "x-report-trigger-token: ${{ secrets.REPORT_TRIGGER_TOKEN }}" \
+            -H "Content-Type: application/json"

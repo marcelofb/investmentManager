@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardAPI } from '../services/api';
-import { formatUSD, formatARS } from '../utils/formatters';
+import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function DashboardPage() {
   const [data, setData] = useState(null);
@@ -27,7 +27,7 @@ export default function DashboardPage() {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  if (loading) return <div className="loading-state">Calculando patrimonio...</div>;
+  if (loading) return <ServerWakeLoader />;
 
   if (error)
     return (

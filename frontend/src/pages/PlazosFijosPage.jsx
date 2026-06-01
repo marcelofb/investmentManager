@@ -3,7 +3,7 @@ import { plazosAPI } from '../services/api';
 import PlazoFijoCard from '../components/PlazoFijoCard';
 import PlazoFijoForm from '../components/PlazoFijoForm';
 import Modal from '../components/Modal';
-import { formatARS, formatDate } from '../utils/formatters';
+import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function PlazosFijosPage() {
   const [plazos, setPlazos] = useState([]);
@@ -134,7 +134,7 @@ export default function PlazosFijosPage() {
       )}
 
       {loading ? (
-        <div className="loading-state">Cargando...</div>
+        <ServerWakeLoader />
       ) : plazos.length === 0 ? (
         <div className="empty-state">
           <h3>Sin plazos fijos</h3>

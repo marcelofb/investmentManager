@@ -3,7 +3,7 @@ import { cryptosAPI } from '../services/api';
 import CryptoCard from '../components/CryptoCard';
 import CryptoForm from '../components/CryptoForm';
 import Modal from '../components/Modal';
-import { formatUSD } from '../utils/formatters';
+import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function CryptosPage() {
   const [positions, setPositions] = useState([]);
@@ -105,7 +105,7 @@ export default function CryptosPage() {
       )}
 
       {loading ? (
-        <div className="loading-state">Cargando precios...</div>
+        <ServerWakeLoader />
       ) : positions.length === 0 ? (
         <div className="empty-state">
           <h3>Sin posiciones</h3>

@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import plazosRouter from './routes/plazos.js';
 import cryptosRouter from './routes/cryptos.js';
 import dashboardRouter from './routes/dashboard.js';
-import { runDailyTelegramReport, startDailyTelegramReportJob } from './jobs/dailyTelegramReportJob.js';
+import { runDailyTelegramReport } from './jobs/dailyTelegramReportJob.js';
 
 dotenv.config();
 
@@ -46,7 +46,6 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log('MongoDB conectado');
-    startDailyTelegramReportJob();
     app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
   })
   .catch((err) => {

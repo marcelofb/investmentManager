@@ -483,6 +483,49 @@ body {
   color: var(--text-secondary);
 }
 
+/* Server wake-up loader */
+.wake-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 5rem 2rem;
+  color: var(--text-secondary);
+}
+
+.wake-loader__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: wake-spin 0.9s linear infinite;
+}
+
+@keyframes wake-spin {
+  to { transform: rotate(360deg); }
+}
+
+.wake-loader__text {
+  font-size: 0.95rem;
+  transition: opacity 0.4s;
+}
+
+.wake-loader__bar-track {
+  width: 220px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.wake-loader__bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 99px;
+  transition: width 0.8s ease;
+}
+
 .empty-state h3 {
   font-size: 1.125rem;
   margin-bottom: 0.5rem;

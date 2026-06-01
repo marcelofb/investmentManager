@@ -1,10 +1,8 @@
-import cron from 'node-cron';
 import DailySnapshot from '../models/DailySnapshot.js';
 import { getPatrimonioSnapshot } from '../services/patrimonioService.js';
 import { buildDailySummaryMessage } from '../services/dailySummaryFormatter.js';
 import { isTelegramConfigured, sendTelegramMessage } from '../services/telegramReporter.js';
 
-const DEFAULT_CRON = '0 8 * * *';
 const DEFAULT_TIMEZONE = 'America/Argentina/Buenos_Aires';
 
 function getDateKeyInTimezone(date, timezone) {
@@ -73,32 +71,3 @@ export async function runDailyTelegramReport({ force = false } = {}) {
   return { sent: true, dateKey, patrimonioTotalUSD: snapshot.patrimonioTotalUSD };
 }
 
-export function startDailyTelegramReportJob() {
-  const cronExpr = process.env.DAILY_REPORT_CRON || DEFAULT_CRON;
-  const timezone = process.env.REPORT_TIMEZONE || DEFAULT_TIMEZONE;
-
-  if (!cron.validate(cronExpr)) {
-    console.error(`[daily-telegram-report] Cron invalido: ${cronExpr}`);
-    return null;
-  }
-
-  const task = cron.schedule(
-    cronExpr,
-    async () => {
-      try {
-        await runDailyTelegramReport();
-      } catch (error) {
-        console.error('[daily-telegram-report] Fallo de ejecucion:', error.message);
-      }
-    },
-    {
-      timezone,
-    }
-  );
-
-  console.info(
-    `[daily-telegram-report] Scheduler iniciado: cron="${cronExpr}" timezone="${timezone}"`
-  );
-
-  return task;
-}

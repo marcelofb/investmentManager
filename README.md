@@ -18,7 +18,7 @@ Aplicación full-stack para gestionar inversiones personales: plazos fijos en AR
 | Frontend | Vercel | — |
 | Backend | Render | — |
 | Base de datos | MongoDB Atlas M0 | — |
-| Keep-alive | UptimeRobot | ping cada 5 min a `/api/health` |
+| Reporte diario | GitHub Actions | cron `0 13 * * *` (10:00 ART) |
 
 ## Estructura
 
@@ -36,7 +36,7 @@ investment-manager/
 │       │   ├── cryptos.js       # CRUD con precios live
 │       │   └── dashboard.js     # Resumen de patrimonio total
 │       ├── jobs/
-│       │   └── dailyTelegramReportJob.js  # Envío diario programado a Telegram
+│       │   └── dailyTelegramReportJob.js  # Lógica del reporte diario (disparado por GitHub Actions)
 │       └── services/
 │           ├── coinGecko.js     # Precios USD con caché de 5 min
 │           ├── dolarApi.js      # Tipo de cambio oficial ARS/USD
@@ -51,6 +51,7 @@ investment-manager/
         │   └── CryptosPage.jsx
         ├── components/
         │   ├── LoginPage.jsx        # Pantalla de login con protección por contraseña
+        │   ├── ServerWakeLoader.jsx # Loader progresivo con feedback de cold start
         │   ├── PlazoFijoCard.jsx
         │   ├── PlazoFijoForm.jsx
         │   ├── CryptoCard.jsx
@@ -111,7 +112,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 | `CORS_ORIGIN` | Origen permitido por CORS | `http://localhost:5173` |
 | `TELEGRAM_BOT_TOKEN` | Token del bot de Telegram | `123456:ABCDEF...` |
 | `TELEGRAM_CHAT_ID` | Chat ID de destino (chat privado, grupo o canal) | `123456789` |
-| `DAILY_REPORT_CRON` | Expresión cron del envío diario | `0 8 * * *` |
+| `DAILY_REPORT_CRON` | Expresión cron del envío diario (solo usado en local) | `0 10 * * *` |
 | `REPORT_TIMEZONE` | Zona horaria usada por el scheduler | `America/Argentina/Buenos_Aires` |
 | `REPORT_TRIGGER_TOKEN` | Token obligatorio para disparo manual por API | `token-seguro` |
 
@@ -144,13 +145,11 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 - Soporte de staking con TNA
 - Precios en tiempo real con caché de 5 minutos para evitar rate limiting de CoinGecko
 
-## UptimeRobot
+## Cold start en Render free
 
-Render apaga los servicios gratuitos tras **15 minutos de inactividad**. Cuando el backend está dormido, la primera petición tarda ~30 segundos en responder (cold start), lo que hace que la app parezca caída.
+Render apaga los servicios gratuitos tras **15 minutos de inactividad**. La primera petición luego de ese período tarda ~30-50 segundos (cold start).
 
-Para evitarlo, se configura un monitor HTTP en [UptimeRobot](https://uptimerobot.com) que hace ping cada 5 minutos al endpoint `GET /api/health` del backend. Esto mantiene el proceso activo de forma continua sin necesidad de un plan pago en Render.
-
-> Solo es necesario si el backend está en el **plan gratuito de Render**.
+El frontend muestra un loader progresivo (`ServerWakeLoader`) que informa al usuario que el servidor está despertando, evitando que parezca que la app está caída.
 
 ## Reporte diario por Telegram
 
@@ -164,13 +163,15 @@ El backend envía un resumen diario de patrimonio por Telegram con:
 3. Configurar variables en Render:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-   - `DAILY_REPORT_CRON=0 8 * * *`
    - `REPORT_TIMEZONE=America/Argentina/Buenos_Aires`
-  - `REPORT_TRIGGER_TOKEN` (obligatorio para trigger manual)
+   - `REPORT_TRIGGER_TOKEN` (obligatorio para trigger manual)
+4. Configurar **GitHub Actions secrets** (Settings → Secrets and variables → Actions → Repository secrets):
+   - `BACKEND_URL` — URL del backend en Render (ej. `https://tu-backend.onrender.com`)
+   - `REPORT_TRIGGER_TOKEN` — mismo valor que en Render
 
 ### Cómo funciona
-- El scheduler se inicia al levantar el backend.
-- Por defecto corre todos los días a las 08:00 (Argentina).
+- El reporte es disparado por un workflow de **GitHub Actions** (`.github/workflows/daily-report.yml`) todos los días a las 13:00 UTC (10:00 ART).
+- El workflow hace un `POST` al endpoint `/api/reports/daily-telegram/trigger`. Si el backend está dormido, el request lo despierta.
 - Evita envíos duplicados en el mismo día.
 - Guarda un snapshot diario en MongoDB para calcular variación contra el día anterior.
 
@@ -193,9 +194,9 @@ curl -X POST "https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger
   -H "x-report-trigger-token: TU_REPORT_TRIGGER_TOKEN"
 ```
 
-### Render + UptimeRobot
+### Dispatch manual desde GitHub Actions
 
-Como ya usás UptimeRobot para mantener el servicio activo en Render free, el cron in-process del backend se mantiene vivo y puede ejecutar el envío diario de forma estable.
+También podés correr el workflow manualmente desde GitHub → Actions → Daily Telegram Report → Run workflow, con la opción de forzar el reenvío aunque ya se haya enviado hoy.
 
 ### Si aparece CoinGecko 429
 
