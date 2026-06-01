@@ -3,6 +3,7 @@ import { cryptosAPI } from '../services/api';
 import CryptoCard from '../components/CryptoCard';
 import CryptoForm from '../components/CryptoForm';
 import Modal from '../components/Modal';
+import { formatUSD } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function CryptosPage() {

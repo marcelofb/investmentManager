@@ -3,6 +3,7 @@ import { plazosAPI } from '../services/api';
 import PlazoFijoCard from '../components/PlazoFijoCard';
 import PlazoFijoForm from '../components/PlazoFijoForm';
 import Modal from '../components/Modal';
+import { formatARS, formatDate } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function PlazosFijosPage() {
