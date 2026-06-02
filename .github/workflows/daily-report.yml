@@ -1,9 +1,6 @@
 name: Daily Telegram Report
 
 on:
-  schedule:
-    # 13:00 UTC = 10:00 America/Argentina/Buenos_Aires
-    - cron: '0 13 * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -17,7 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Wake server and send daily report
+      - name: Wake up server
+        run: |
+          echo "Waking server..."
+          curl --max-time 60 --retry 2 --retry-delay 10 \
+            "${{ secrets.BACKEND_URL }}/api/health" || true
+
+      - name: Send daily report
         run: |
           FORCE="${{ github.event.inputs.force || 'false' }}"
           URL="${{ secrets.BACKEND_URL }}/api/reports/daily-telegram/trigger"
@@ -26,7 +29,7 @@ jobs:
           fi
 
           echo "Calling $URL ..."
-          curl --fail --max-time 120 --retry 3 --retry-delay 10 \
+          curl --fail --max-time 60 --retry 2 --retry-delay 10 \
             -X POST "$URL" \
             -H "x-report-trigger-token: ${{ secrets.REPORT_TRIGGER_TOKEN }}" \
             -H "Content-Type: application/json"
