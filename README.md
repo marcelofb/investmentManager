@@ -18,7 +18,7 @@ Aplicación full-stack para gestionar inversiones personales: plazos fijos en AR
 | Frontend | Vercel | — |
 | Backend | Render | — |
 | Base de datos | MongoDB Atlas M0 | — |
-| Reporte diario | cron-job.org | todos los días a las 10:00 ART |
+| Reporte diario | GitHub Actions | cron `0 13 * * *` (10:00 ART) |
 
 ## Estructura
 
@@ -36,7 +36,7 @@ investment-manager/
 │       │   ├── cryptos.js       # CRUD con precios live
 │       │   └── dashboard.js     # Resumen de patrimonio total
 │       ├── jobs/
-│       │   └── dailyTelegramReportJob.js  # Lógica del reporte diario (disparado por cron-job.org)
+│       │   └── dailyTelegramReportJob.js  # Lógica del reporte diario (disparado por GitHub Actions)
 │       └── services/
 │           ├── coinGecko.js     # Precios USD con caché de 5 min
 │           ├── dolarApi.js      # Tipo de cambio oficial ARS/USD
@@ -164,18 +164,14 @@ El backend envía un resumen diario de patrimonio por Telegram con:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
    - `REPORT_TIMEZONE=America/Argentina/Buenos_Aires`
-   - `REPORT_TRIGGER_TOKEN` (obligatorio para el trigger de cron-job.org)
-4. Configurar dos cronjobs en [cron-job.org](https://cron-job.org) (cuenta gratuita):
-   - **Wake-up** — `GET` a `.../api/health` todos los días a las `09:55` (America/Argentina/Buenos_Aires)
-   - **Reporte** — `POST` a `.../api/reports/daily-telegram/trigger` todos los días a las `10:00` (America/Argentina/Buenos_Aires), con header `x-report-trigger-token: TU_TOKEN`
-5. Opcional: configurar **GitHub Actions secrets** para poder disparar el reporte manualmente desde GitHub → Actions:
-   - `BACKEND_URL` — URL del backend en Render
+   - `REPORT_TRIGGER_TOKEN` (obligatorio para trigger manual)
+4. Configurar **GitHub Actions secrets** (Settings → Secrets and variables → Actions → Repository secrets):
+   - `BACKEND_URL` — URL del backend en Render (ej. `https://tu-backend.onrender.com`)
    - `REPORT_TRIGGER_TOKEN` — mismo valor que en Render
 
 ### Cómo funciona
-- El reporte es disparado por **[cron-job.org](https://cron-job.org)** todos los días a las 10:00 ART.
-- Un primer job hace `GET /api/health` a las 09:55 para despertar el servidor antes de que llegue el reporte.
-- El job principal hace `POST /api/reports/daily-telegram/trigger` a las 10:00.
+- El reporte es disparado por un workflow de **GitHub Actions** (`.github/workflows/daily-report.yml`) todos los días a las 13:00 UTC (10:00 ART).
+- El workflow hace un `POST` al endpoint `/api/reports/daily-telegram/trigger`. Si el backend está dormido, el request lo despierta.
 - Evita envíos duplicados en el mismo día.
 - Guarda un snapshot diario en MongoDB para calcular variación contra el día anterior.
 
@@ -200,7 +196,7 @@ curl -X POST "https://TU_BACKEND.onrender.com/api/reports/daily-telegram/trigger
 
 ### Dispatch manual desde GitHub Actions
 
-El workflow `.github/workflows/daily-report.yml` solo se ejecuta manualmente (no tiene schedule). Ústilo desde GitHub → Actions → Daily Telegram Report → Run workflow, con la opción de forzar el reenvío aunque ya se haya enviado hoy.
+También podés correr el workflow manualmente desde GitHub → Actions → Daily Telegram Report → Run workflow, con la opción de forzar el reenvío aunque ya se haya enviado hoy.
 
 ### Si aparece CoinGecko 429
 

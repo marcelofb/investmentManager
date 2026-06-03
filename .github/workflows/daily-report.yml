@@ -1,6 +1,9 @@
 name: Daily Telegram Report
 
 on:
+  schedule:
+    # 13:00 UTC = 10:00 America/Argentina/Buenos_Aires
+    - cron: '0 13 * * *'
   workflow_dispatch:
     inputs:
       force:
