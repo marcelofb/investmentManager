@@ -1,60 +1,5 @@
-const BASE_URL = 'https://min-api.cryptocompare.com/data';
+const BASE_URL = 'https://api.coingecko.com/api/v3';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
-
-// Mapa de IDs de CoinGecko a tickers de CryptoCompare
-const COINGECKO_TO_CC = {
-  'bitcoin': 'BTC',
-  'ethereum': 'ETH',
-  'tether': 'USDT',
-  'solana': 'SOL',
-  'binancecoin': 'BNB',
-  'ripple': 'XRP',
-  'cardano': 'ADA',
-  'dogecoin': 'DOGE',
-  'shiba-inu': 'SHIB',
-  'polkadot': 'DOT',
-  'avalanche-2': 'AVAX',
-  'matic-network': 'MATIC',
-  'polygon-ecosystem-token': 'POL',
-  'chainlink': 'LINK',
-  'uniswap': 'UNI',
-  'litecoin': 'LTC',
-  'cosmos': 'ATOM',
-  'near': 'NEAR',
-  'arbitrum': 'ARB',
-  'optimism': 'OP',
-  'sui': 'SUI',
-  'aptos': 'APT',
-  'pepe': 'PEPE',
-  'wrapped-bitcoin': 'WBTC',
-  'bitcoin-cash': 'BCH',
-  'stellar': 'XLM',
-  'tron': 'TRX',
-  'monero': 'XMR',
-  'ethereum-classic': 'ETC',
-  'filecoin': 'FIL',
-  'internet-computer': 'ICP',
-  'hedera-hashgraph': 'HBAR',
-  'the-graph': 'GRT',
-  'aave': 'AAVE',
-  'maker': 'MKR',
-  'fantom': 'FTM',
-  'algorand': 'ALGO',
-  'vechain': 'VET',
-  'render-token': 'RENDER',
-  'injective-protocol': 'INJ',
-  'sei-network': 'SEI',
-  'celestia': 'TIA',
-  'bonk': 'BONK',
-  'jupiter-exchange-solana': 'JUP',
-  'pyth-network': 'PYTH',
-  'usd-coin': 'USDC',
-  'dai': 'DAI',
-};
-
-function toCCSymbol(geckoId) {
-  return COINGECKO_TO_CC[geckoId] ?? geckoId.replace(/-/g, '').toUpperCase();
-}
 
 const cache = {
   data: {},
@@ -75,30 +20,28 @@ export async function getPrices(ids) {
     return cache.data;
   }
 
-  const symbolToId = Object.fromEntries(uniqueIds.map((id) => [toCCSymbol(id), id]));
-  const fsyms = Object.keys(symbolToId).join(',');
-  const url = `${BASE_URL}/pricemulti?fsyms=${fsyms}&tsyms=USD`;
+  const url = `${BASE_URL}/simple/price?ids=${uniqueIds.join(',')}&vs_currencies=usd`;
+
+  const headers = { Accept: 'application/json' };
+  if (process.env.COINGECKO_API_KEY) {
+    headers['x-cg-demo-api-key'] = process.env.COINGECKO_API_KEY;
+  }
 
   try {
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    const res = await fetch(url, { headers });
     if (!res.ok) {
-      console.error(`CryptoCompare API error: ${res.status}`);
+      console.error(`CoinGecko API error: ${res.status}`);
       if (cache.timestamp) return cache.data;
-      throw new Error(`CryptoCompare API error: ${res.status}`);
+      throw new Error(`CoinGecko API error: ${res.status}`);
     }
 
     const json = await res.json();
-    // Convertir { BTC: { USD: 78000 } } → { bitcoin: { usd: 78000 } }
-    const fresh = {};
-    for (const [symbol, prices] of Object.entries(json)) {
-      const geckoId = symbolToId[symbol];
-      if (geckoId && prices.USD != null) fresh[geckoId] = { usd: prices.USD };
-    }
-    cache.data = { ...cache.data, ...fresh };
+    // CoinGecko ya devuelve { bitcoin: { usd: 78000 }, ... }
+    cache.data = { ...cache.data, ...json };
     cache.timestamp = Date.now();
     return cache.data;
   } catch (err) {
-    console.error(`CryptoCompare fetch error: ${err.message}`);
+    console.error(`CoinGecko fetch error: ${err.message}`);
     if (cache.timestamp) return cache.data;
     throw err;
   }

@@ -85,6 +85,7 @@ TELEGRAM_CHAT_ID=
 DAILY_REPORT_CRON=0 8 * * *
 REPORT_TIMEZONE=America/Argentina/Buenos_Aires
 REPORT_TRIGGER_TOKEN=
+COINGECKO_API_KEY=   # opcional
 ```
 
 ```bash
@@ -115,6 +116,7 @@ El frontend tiene configurado un proxy a `localhost:3001` en desarrollo, por lo 
 | `DAILY_REPORT_CRON` | Expresión cron del envío diario (solo usado en local) | `0 10 * * *` |
 | `REPORT_TIMEZONE` | Zona horaria usada por el scheduler | `America/Argentina/Buenos_Aires` |
 | `REPORT_TRIGGER_TOKEN` | Token obligatorio para disparo manual por API | `token-seguro` |
+| `COINGECKO_API_KEY` | Demo API key de CoinGecko (opcional, mayor rate limit) | `CG-xxxx...` |
 
 ### Frontend
 | Variable | Descripción | Ejemplo |
