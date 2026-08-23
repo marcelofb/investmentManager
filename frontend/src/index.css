@@ -686,6 +686,7 @@ body {
 
 .distribution-segment.plazos { background: var(--primary); }
 .distribution-segment.cryptos { background: var(--warning); }
+.distribution-segment.liquidez { background: var(--success); }
 
 .distribution-legend {
   display: flex;
@@ -700,6 +701,12 @@ body {
 
 .legend-item.plazos { color: var(--primary-dark); }
 .legend-item.cryptos { color: #92400e; }
+.legend-item.liquidez { color: #166534; }
+
+.liquidez-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+}
 
 /* Alert */
 .alert {

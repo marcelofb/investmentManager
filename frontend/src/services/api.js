@@ -32,3 +32,8 @@ export const cryptosAPI = {
   update: (id, data) => request('PUT', `/cryptos/${id}`, data),
   remove: (id) => request('DELETE', `/cryptos/${id}`),
 };
+
+export const liquidityAPI = {
+  get: () => request('GET', '/liquidez'),
+  save: (data) => request('PUT', '/liquidez', data),
+};

@@ -1,7 +1,9 @@
 import PlazoFijo from '../models/PlazoFijo.js';
 import CryptoPosition from '../models/CryptoPosition.js';
+import Liquidez from '../models/Liquidez.js';
 import { getPrices } from './coinGecko.js';
 import { getDolarOficial } from './dolarApi.js';
+import { calculateLiquidityUSD } from './liquidezService.js';
 
 const DURACION_DIAS = 365;
 
@@ -37,9 +39,10 @@ function round2(value) {
 }
 
 export async function getPatrimonioSnapshot() {
-  const [plazos, positions, dolarOficial] = await Promise.all([
+  const [plazos, positions, liquidityRecord, dolarOficial] = await Promise.all([
     PlazoFijo.find({ estado: 'activo' }),
     CryptoPosition.find(),
+    Liquidez.findOne().lean(),
     getDolarOficial(),
   ]);
 
@@ -56,7 +59,14 @@ export async function getPatrimonioSnapshot() {
     );
   }
 
-  const patrimonioTotalUSD = totalPlazoUSD + totalCryptoUSD;
+  const liquidityARS = Number(liquidityRecord?.ars ?? 0);
+  const liquidityUSD = Number(liquidityRecord?.usd ?? 0);
+  const totalLiquidityUSD = calculateLiquidityUSD(
+    { ars: liquidityARS, usd: liquidityUSD },
+    dolarOficial
+  );
+
+  const patrimonioTotalUSD = totalPlazoUSD + totalCryptoUSD + totalLiquidityUSD;
 
   return {
     dolarOficial: round2(dolarOficial),
@@ -68,6 +78,12 @@ export async function getPatrimonioSnapshot() {
     cryptos: {
       totalUSD: round2(totalCryptoUSD),
       count: positions.length,
+    },
+    liquidez: {
+      ars: round2(liquidityARS),
+      usd: round2(liquidityUSD),
+      totalUSD: round2(totalLiquidityUSD),
+      updatedAt: liquidityRecord?.updatedAt ?? null,
     },
     patrimonioTotalUSD: round2(patrimonioTotalUSD),
   };
