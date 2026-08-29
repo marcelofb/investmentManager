@@ -73,6 +73,10 @@ export default function DashboardPage() {
     data.patrimonioTotalUSD > 0
       ? (data.cryptos.totalUSD / data.patrimonioTotalUSD) * 100
       : 0;
+  const pctCedears =
+    data.patrimonioTotalUSD > 0
+      ? (data.cedears.totalUSD / data.patrimonioTotalUSD) * 100
+      : 0;
   const pctLiquidez =
     data.patrimonioTotalUSD > 0
       ? (data.liquidez.totalUSD / data.patrimonioTotalUSD) * 100
@@ -125,6 +129,17 @@ export default function DashboardPage() {
           <div className="breakdown-pct">{pctCryptos.toFixed(1)}%</div>
         </Link>
 
+        <Link to="/cedears" className="breakdown-card">
+          <div className="breakdown-icon">📈</div>
+          <div className="breakdown-info">
+            <div className="breakdown-title">CEDEARs</div>
+            <div className="breakdown-usd">{formatUSD(data.cedears.totalUSD)}</div>
+            <div className="breakdown-secondary">{formatARS(data.cedears.totalARS)}</div>
+            <div className="breakdown-meta">{data.cedears.count} posición{data.cedears.count !== 1 ? 'es' : ''}</div>
+          </div>
+          <div className="breakdown-pct">{pctCedears.toFixed(1)}%</div>
+        </Link>
+
         <div className="breakdown-card liquidez-card">
           <div className="breakdown-icon">💵</div>
           <div className="breakdown-info">
@@ -163,6 +178,11 @@ export default function DashboardPage() {
               title={`Cryptos: ${pctCryptos.toFixed(1)}%`}
             />
             <div
+              className="distribution-segment cedears"
+              style={{ width: `${pctCedears}%` }}
+              title={`CEDEARs: ${pctCedears.toFixed(1)}%`}
+            />
+            <div
               className="distribution-segment liquidez"
               style={{ width: `${pctLiquidez}%` }}
               title={`Liquidez: ${pctLiquidez.toFixed(1)}%`}
@@ -171,6 +191,7 @@ export default function DashboardPage() {
           <div className="distribution-legend">
             <span className="legend-item plazos">● Plazos Fijos</span>
             <span className="legend-item cryptos">● Cryptos</span>
+            <span className="legend-item cedears">● CEDEARs</span>
             <span className="legend-item liquidez">● Liquidez</span>
           </div>
         </div>

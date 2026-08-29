@@ -37,3 +37,10 @@ export const liquidityAPI = {
   get: () => request('GET', '/liquidez'),
   save: (data) => request('PUT', '/liquidez', data),
 };
+
+export const cedearsAPI = {
+  getAll: () => request('GET', '/cedears'),
+  create: (data) => request('POST', '/cedears', data),
+  update: (id, data) => request('PUT', `/cedears/${id}`, data),
+  remove: (id) => request('DELETE', `/cedears/${id}`),
+};

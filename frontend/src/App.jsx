@@ -3,6 +3,7 @@ import { Routes, Route, NavLink } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage.jsx';
 import PlazosFijosPage from './pages/PlazosFijosPage.jsx';
 import CryptosPage from './pages/CryptosPage.jsx';
+import CedearsPage from './pages/CedearsPage.jsx';
 import LoginPage from './components/LoginPage.jsx';
 
 async function sha256(text) {
@@ -31,6 +32,7 @@ export default function App() {
           <NavLink to="/" end>Dashboard</NavLink>
           <NavLink to="/plazos-fijos">Plazos Fijos</NavLink>
           <NavLink to="/cryptos">Cryptos</NavLink>
+          <NavLink to="/cedears">CEDEARs</NavLink>
         </div>
       </nav>
       <main className="main-content">
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/plazos-fijos" element={<PlazosFijosPage />} />
           <Route path="/cryptos" element={<CryptosPage />} />
+          <Route path="/cedears" element={<CedearsPage />} />
         </Routes>
       </main>
     </div>

@@ -686,6 +686,7 @@ body {
 
 .distribution-segment.plazos { background: var(--primary); }
 .distribution-segment.cryptos { background: var(--warning); }
+.distribution-segment.cedears { background: #8b5cf6; }
 .distribution-segment.liquidez { background: var(--success); }
 
 .distribution-legend {

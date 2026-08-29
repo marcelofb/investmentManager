@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import plazosRouter from './routes/plazos.js';
 import cryptosRouter from './routes/cryptos.js';
+import cedearsRouter from './routes/cedears.js';
 import liquidezRouter from './routes/liquidez.js';
 import dashboardRouter from './routes/dashboard.js';
 import { runDailyTelegramReport } from './jobs/dailyTelegramReportJob.js';
@@ -19,6 +20,7 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/plazos-fijos', plazosRouter);
 app.use('/api/cryptos', cryptosRouter);
+app.use('/api/cedears', cedearsRouter);
 app.use('/api/liquidez', liquidezRouter);
 app.use('/api/dashboard', dashboardRouter);
 

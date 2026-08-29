@@ -1,8 +1,10 @@
 import PlazoFijo from '../models/PlazoFijo.js';
 import CryptoPosition from '../models/CryptoPosition.js';
+import CedearPosition from '../models/CedearPosition.js';
 import Liquidez from '../models/Liquidez.js';
 import { getPrices } from './coinGecko.js';
 import { getDolarOficial } from './dolarApi.js';
+import { getPriceBA } from './yahooFinance.js';
 import { calculateLiquidityUSD } from './liquidezService.js';
 
 const DURACION_DIAS = 365;
@@ -34,14 +36,44 @@ function calcularCrypto(position, prices) {
   return monto + montoStaking;
 }
 
+async function calcularCedears(positions, dolarOficial) {
+  if (!positions || positions.length === 0) {
+    return { totalARS: 0, totalUSD: 0, count: 0 };
+  }
+
+  const priceMap = {};
+  for (const position of positions) {
+    const ticker = String(position.ticker ?? '').trim();
+    if (!ticker) continue;
+    const priceData = await getPriceBA(ticker);
+    priceMap[position._id.toString()] = priceData;
+  }
+
+  let totalARS = 0;
+  for (const position of positions) {
+    const priceData = priceMap[position._id.toString()];
+    const precioARS = priceData?.price ?? 0;
+    totalARS += position.cantidad * precioARS;
+  }
+
+  const totalUSD = dolarOficial > 0 ? totalARS / dolarOficial : 0;
+
+  return {
+    totalARS: round2(totalARS),
+    totalUSD: round2(totalUSD),
+    count: positions.length,
+  };
+}
+
 function round2(value) {
   return parseFloat(value.toFixed(2));
 }
 
 export async function getPatrimonioSnapshot() {
-  const [plazos, positions, liquidityRecord, dolarOficial] = await Promise.all([
+  const [plazos, positions, cedears, liquidityRecord, dolarOficial] = await Promise.all([
     PlazoFijo.find({ estado: 'activo' }),
     CryptoPosition.find(),
+    CedearPosition.find(),
     Liquidez.findOne().lean(),
     getDolarOficial(),
   ]);
@@ -59,6 +91,8 @@ export async function getPatrimonioSnapshot() {
     );
   }
 
+  const cedearsSummary = await calcularCedears(cedears, dolarOficial);
+
   const liquidityARS = Number(liquidityRecord?.ars ?? 0);
   const liquidityUSD = Number(liquidityRecord?.usd ?? 0);
   const totalLiquidityUSD = calculateLiquidityUSD(
@@ -66,7 +100,7 @@ export async function getPatrimonioSnapshot() {
     dolarOficial
   );
 
-  const patrimonioTotalUSD = totalPlazoUSD + totalCryptoUSD + totalLiquidityUSD;
+  const patrimonioTotalUSD = totalPlazoUSD + totalCryptoUSD + cedearsSummary.totalUSD + totalLiquidityUSD;
 
   return {
     dolarOficial: round2(dolarOficial),
@@ -78,6 +112,11 @@ export async function getPatrimonioSnapshot() {
     cryptos: {
       totalUSD: round2(totalCryptoUSD),
       count: positions.length,
+    },
+    cedears: {
+      totalARS: round2(cedearsSummary.totalARS),
+      totalUSD: round2(cedearsSummary.totalUSD),
+      count: cedearsSummary.count,
     },
     liquidez: {
       ars: round2(liquidityARS),
