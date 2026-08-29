@@ -6,11 +6,7 @@ export default function CedearCard({ position, onEdit, onDelete }) {
     plataforma,
     cantidad,
     precioARS,
-    precioUSD,
-    montoARS,
-    montoUSD,
     montoTotalARS,
-    montoTotalUSD,
   } = position;
 
   return (
@@ -24,28 +20,16 @@ export default function CedearCard({ position, onEdit, onDelete }) {
 
       <div className="card-body">
         <div className="data-row">
-          <span className="row-label">Precio actual</span>
+          <span className="row-label">Precio</span>
           <span className="row-value">{formatARS(precioARS)}</span>
-        </div>
-        <div className="data-row">
-          <span className="row-label">Precio USD</span>
-          <span className="row-value">{formatUSD(precioUSD)}</span>
         </div>
         <div className="data-row">
           <span className="row-label">Cantidad</span>
           <span className="row-value">{cantidad}</span>
         </div>
-        <div className="data-row">
-          <span className="row-label">Monto</span>
-          <span className="row-value">{formatARS(montoARS)}</span>
-        </div>
         <div className="data-row highlight">
           <span className="row-label">Monto total</span>
           <span className="row-value">{formatARS(montoTotalARS)}</span>
-        </div>
-        <div className="data-row">
-          <span className="row-label">Equivalente USD</span>
-          <span className="row-value">{formatUSD(montoTotalUSD)}</span>
         </div>
       </div>
 

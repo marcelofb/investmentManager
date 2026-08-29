@@ -91,10 +91,6 @@ export default function CedearsPage() {
             <div className="s-value blue">{formatARS(totalARS)}</div>
           </div>
           <div className="summary-card">
-            <div className="s-label">Valor total en USD</div>
-            <div className="s-value green">{formatUSD(totalUSD)}</div>
-          </div>
-          <div className="summary-card">
             <div className="s-label">Posiciones</div>
             <div className="s-value">{positions.length}</div>
           </div>
