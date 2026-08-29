@@ -5,21 +5,15 @@ import { getPriceBA } from '../services/yahooFinance.js';
 
 const router = Router();
 
-function calcularDatos(position, priceData, dolarOficial) {
+function calcularDatos(position, priceData) {
   const precioARS = priceData?.price ?? 0;
-  const precioUSD = dolarOficial > 0 ? precioARS / dolarOficial : 0;
-  const montoARS = position.cantidad * precioARS;
-  const montoUSD = montoARS / dolarOficial;
+  const montoTotalARS = position.cantidad * precioARS;
 
   return {
     ...position.toObject(),
     ticker: position.ticker.toUpperCase(),
     precioARS: parseFloat(precioARS.toFixed(2)),
-    precioUSD: parseFloat(precioUSD.toFixed(2)),
-    montoARS: parseFloat(montoARS.toFixed(2)),
-    montoUSD: parseFloat(montoUSD.toFixed(2)),
-    montoTotalARS: parseFloat(montoARS.toFixed(2)),
-    montoTotalUSD: parseFloat(montoUSD.toFixed(2)),
+    montoTotalARS: parseFloat(montoTotalARS.toFixed(2)),
   };
 }
 
