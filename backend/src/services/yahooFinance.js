@@ -1,9 +1,12 @@
 const BASE_URL = 'https://query1.finance.yahoo.com/v8/finance/chart';
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const RATE_LIMIT_COOLDOWN_MS = 60 * 1000;
 
 const cache = {
   data: {},
   timestamp: null,
+  inFlight: {},
+  cooldowns: {},
 };
 
 function normalizeTicker(ticker) {
@@ -14,42 +17,68 @@ function normalizeTicker(ticker) {
   return upper.endsWith('.BA') ? upper : `${upper}.BA`;
 }
 
+function isFresh(symbol) {
+  return Boolean(cache.data[symbol] && cache.timestamp && Date.now() - cache.timestamp < CACHE_TTL_MS);
+}
+
 export async function getPriceBA(ticker) {
   const symbol = normalizeTicker(ticker);
 
-  if (
-    cache.timestamp &&
-    Date.now() - cache.timestamp < CACHE_TTL_MS &&
-    cache.data[symbol]
-  ) {
+  if (isFresh(symbol)) {
     return cache.data[symbol];
   }
 
-  const url = `${BASE_URL}/${symbol}?range=1d&interval=1d`;
-  const res = await fetch(url);
+  if (cache.cooldowns[symbol] && Date.now() < cache.cooldowns[symbol]) {
+    if (cache.data[symbol]) {
+      return cache.data[symbol];
+    }
 
-  if (!res.ok) {
-    throw new Error(`Yahoo Finance error: ${res.status}`);
+    throw new Error(`Yahoo Finance error: 429`);
   }
 
-  const json = await res.json();
-  const price = json?.chart?.result?.[0]?.meta?.regularMarketPrice;
-  const currency = json?.chart?.result?.[0]?.meta?.currency ?? 'ARS';
-
-  if (!Number.isFinite(price) || price <= 0) {
-    throw new Error(`No se pudo obtener precio para ${symbol}`);
+  if (cache.inFlight[symbol]) {
+    return cache.inFlight[symbol];
   }
 
-  const payload = {
-    symbol,
-    price: Number(price),
-    currency,
-    timestamp: Date.now(),
-  };
+  const fetchPromise = (async () => {
+    const url = `${BASE_URL}/${symbol}?range=1d&interval=1d`;
+    const res = await fetch(url);
 
-  cache.data[symbol] = payload;
-  cache.timestamp = Date.now();
-  return payload;
+    if (!res.ok) {
+      if (res.status === 429) {
+        cache.cooldowns[symbol] = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+      }
+      throw new Error(`Yahoo Finance error: ${res.status}`);
+    }
+
+    const json = await res.json();
+    const price = json?.chart?.result?.[0]?.meta?.regularMarketPrice;
+    const currency = json?.chart?.result?.[0]?.meta?.currency ?? 'ARS';
+
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`No se pudo obtener precio para ${symbol}`);
+    }
+
+    const payload = {
+      symbol,
+      price: Number(price),
+      currency,
+      timestamp: Date.now(),
+    };
+
+    cache.data[symbol] = payload;
+    cache.timestamp = Date.now();
+    delete cache.cooldowns[symbol];
+    return payload;
+  })();
+
+  cache.inFlight[symbol] = fetchPromise;
+
+  try {
+    return await fetchPromise;
+  } finally {
+    delete cache.inFlight[symbol];
+  }
 }
 
 export async function getPrices(tickers) {
