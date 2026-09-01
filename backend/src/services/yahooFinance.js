@@ -9,6 +9,8 @@ const cache = {
   cooldowns: {},
 };
 
+let requestQueue = Promise.resolve();
+
 function normalizeTicker(ticker) {
   const raw = String(ticker ?? '').trim();
   if (!raw) throw new Error('Ticker requerido');
@@ -19,6 +21,12 @@ function normalizeTicker(ticker) {
 
 function isFresh(symbol) {
   return Boolean(cache.data[symbol] && cache.timestamp && Date.now() - cache.timestamp < CACHE_TTL_MS);
+}
+
+function enqueueYahooRequest(task) {
+  const next = requestQueue.then(task, task);
+  requestQueue = next.catch(() => {});
+  return next;
 }
 
 export async function getPriceBA(ticker) {
@@ -33,21 +41,29 @@ export async function getPriceBA(ticker) {
       return cache.data[symbol];
     }
 
-    throw new Error(`Yahoo Finance error: 429`);
+    await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_COOLDOWN_MS));
+    return getPriceBA(symbol);
   }
 
   if (cache.inFlight[symbol]) {
     return cache.inFlight[symbol];
   }
 
-  const fetchPromise = (async () => {
+  const fetchPromise = enqueueYahooRequest(async () => {
     const url = `${BASE_URL}/${symbol}?range=1d&interval=1d`;
     const res = await fetch(url);
 
     if (!res.ok) {
       if (res.status === 429) {
         cache.cooldowns[symbol] = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+        if (cache.data[symbol]) {
+          return cache.data[symbol];
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_COOLDOWN_MS));
+        return getPriceBA(symbol);
       }
+
       throw new Error(`Yahoo Finance error: ${res.status}`);
     }
 
@@ -70,7 +86,7 @@ export async function getPriceBA(ticker) {
     cache.timestamp = Date.now();
     delete cache.cooldowns[symbol];
     return payload;
-  })();
+  });
 
   cache.inFlight[symbol] = fetchPromise;
 
