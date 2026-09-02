@@ -36,13 +36,13 @@ export async function getPriceBA(ticker) {
     return cache.data[symbol];
   }
 
+  // Fail fast instead of blocking the request for a minute if we're cooling down.
   if (cache.cooldowns[symbol] && Date.now() < cache.cooldowns[symbol]) {
     if (cache.data[symbol]) {
       return cache.data[symbol];
     }
 
-    await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_COOLDOWN_MS));
-    return getPriceBA(symbol);
+    throw new Error('Yahoo Finance error: 429');
   }
 
   if (cache.inFlight[symbol]) {
@@ -51,7 +51,15 @@ export async function getPriceBA(ticker) {
 
   const fetchPromise = enqueueYahooRequest(async () => {
     const url = `${BASE_URL}/${symbol}?range=1d&interval=1d`;
-    const res = await fetch(url);
+    // Node's default fetch headers look like a bot to Yahoo; a browser-like
+    // User-Agent avoids the 429s that don't happen when hitting the URL manually.
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: 'application/json, text/plain, */*',
+      },
+    });
 
     if (!res.ok) {
       if (res.status === 429) {
@@ -59,9 +67,6 @@ export async function getPriceBA(ticker) {
         if (cache.data[symbol]) {
           return cache.data[symbol];
         }
-
-        await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_COOLDOWN_MS));
-        return getPriceBA(symbol);
       }
 
       throw new Error(`Yahoo Finance error: ${res.status}`);
