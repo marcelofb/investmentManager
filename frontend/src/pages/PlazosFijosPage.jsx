@@ -3,7 +3,7 @@ import { plazosAPI } from '../services/api';
 import PlazoFijoCard from '../components/PlazoFijoCard';
 import PlazoFijoForm from '../components/PlazoFijoForm';
 import Modal from '../components/Modal';
-import { formatARS, formatDate } from '../utils/formatters';
+import { formatARS, formatDate, formatPercent } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function PlazosFijosPage() {
@@ -172,6 +172,7 @@ export default function PlazosFijosPage() {
                 <div className="historial-item-right">
                   <span className="historial-monto">{formatARS(p.montoCobrado)}</span>
                   <span className="historial-monto-orig">invertido: {formatARS(p.monto)}</span>
+                  <span className="historial-monto-orig">TNA: {formatPercent(p.tna)}</span>
                 </div>
               </div>
             ))}
