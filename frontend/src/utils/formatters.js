@@ -34,4 +34,15 @@ export const formatDate = (date) =>
     timeZone: 'UTC',
   });
 
+const AR_TIMEZONE = 'America/Argentina/Buenos_Aires';
+
+// Devuelve YYYY-MM-DD según el calendario de Argentina (no UTC)
+export const dateInputAR = (date = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: AR_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(date));
+
 export const formatPercent = (value) => `${Number(value).toFixed(2)}%`;

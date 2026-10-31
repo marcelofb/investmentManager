@@ -1,13 +1,14 @@
 import { useState } from 'react';
+import { dateInputAR } from '../utils/formatters';
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => dateInputAR();
 
 export default function CedearForm({ initial, onSubmit, onCancel, loading }) {
   const [form, setForm] = useState({
     ticker: initial?.ticker ?? '',
     plataforma: initial?.plataforma ?? '',
     cantidad: initial?.cantidad ?? '',
-    fechaAlta: initial?.createdAt ? new Date(initial.createdAt).toISOString().split('T')[0] : today(),
+    fechaAlta: initial?.createdAt ? dateInputAR(initial.createdAt) : today(),
   });
   const [errors, setErrors] = useState({});
 

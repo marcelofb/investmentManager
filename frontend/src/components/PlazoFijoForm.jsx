@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { dateInputAR } from '../utils/formatters';
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => dateInputAR();
 
 export default function PlazoFijoForm({ initial, onSubmit, onCancel, loading }) {
   const [form, setForm] = useState({

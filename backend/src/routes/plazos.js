@@ -1,21 +1,18 @@
 import { Router } from 'express';
 import PlazoFijo from '../models/PlazoFijo.js';
+import { hoyAR, diasTranscurridosAR } from '../utils/dateUtils.js';
 
 const router = Router();
 const DURACION_DIAS = 365;
 const DIAS_MIN_PRECANCELACION = 30;
 
 function calcularDatos(plazo) {
-  const hoy = new Date();
   const inicio = new Date(plazo.fechaInicio);
 
   const fechaVencimiento = new Date(inicio);
-  fechaVencimiento.setDate(fechaVencimiento.getDate() + DURACION_DIAS);
+  fechaVencimiento.setUTCDate(fechaVencimiento.getUTCDate() + DURACION_DIAS);
 
-  const diasTranscurridos = Math.max(
-    0,
-    Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24))
-  );
+  const diasTranscurridos = Math.max(0, diasTranscurridosAR(inicio));
   const diasEfectivos = Math.min(diasTranscurridos, DURACION_DIAS);
   const intereses = plazo.monto * (plazo.tna / 100) * (diasEfectivos / DURACION_DIAS);
   const montoActual = plazo.monto + intereses;
@@ -35,9 +32,8 @@ function calcularDatos(plazo) {
 
 // Marca automáticamente como vencidos los plazos activos que ya cumplieron 365 días
 async function cerrarVencidos() {
-  const hoy = new Date();
-  const limite = new Date(hoy);
-  limite.setDate(limite.getDate() - DURACION_DIAS);
+  const limite = hoyAR();
+  limite.setUTCDate(limite.getUTCDate() - DURACION_DIAS);
 
   const vencidos = await PlazoFijo.find({
     estado: 'activo',
@@ -48,7 +44,7 @@ async function cerrarVencidos() {
     const intereses = plazo.monto * (plazo.tna / 100); // 365/365 = 1
     const montoCobrado = parseFloat((plazo.monto + intereses).toFixed(2));
     const fechaVencimiento = new Date(plazo.fechaInicio);
-    fechaVencimiento.setDate(fechaVencimiento.getDate() + DURACION_DIAS);
+    fechaVencimiento.setUTCDate(fechaVencimiento.getUTCDate() + DURACION_DIAS);
 
     await PlazoFijo.findByIdAndUpdate(plazo._id, {
       estado: 'vencido',
@@ -116,9 +112,8 @@ router.post('/:id/precancelar', async (req, res) => {
       return res.status(400).json({ error: 'Solo se pueden precancelar plazos activos' });
     }
 
-    const hoy = new Date();
-    const inicio = new Date(plazo.fechaInicio);
-    const diasTranscurridos = Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24));
+    const hoy = hoyAR();
+    const diasTranscurridos = diasTranscurridosAR(plazo.fechaInicio);
 
     if (diasTranscurridos < DIAS_MIN_PRECANCELACION) {
       return res.status(400).json({ error: `El plazo aún no puede precancelarse (mínimo ${DIAS_MIN_PRECANCELACION} días)` });

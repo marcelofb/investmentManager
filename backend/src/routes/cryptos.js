@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import CryptoPosition from '../models/CryptoPosition.js';
 import { getPrices } from '../services/coinGecko.js';
+import { diasTranscurridosAR } from '../utils/dateUtils.js';
 
 const router = Router();
 
@@ -10,9 +11,7 @@ function calcularDatos(position, prices) {
 
   let montoStaking = 0;
   if (position.staking && position.tnaStaking > 0) {
-    const hoy = new Date();
-    const inicio = new Date(position.fechaInicio);
-    const dias = Math.max(0, Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24)));
+    const dias = Math.max(0, diasTranscurridosAR(position.fechaInicio));
     montoStaking = monto * (position.tnaStaking / 100) * (dias / 365);
   }
 

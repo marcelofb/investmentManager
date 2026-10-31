@@ -6,16 +6,12 @@ import { getPrices } from './coinGecko.js';
 import { getDolarOficial } from './dolarApi.js';
 import { getPriceBA } from './yahooFinance.js';
 import { calculateLiquidityUSD } from './liquidezService.js';
+import { diasTranscurridosAR } from '../utils/dateUtils.js';
 
 const DURACION_DIAS = 365;
 
 function calcularPlazo(plazo) {
-  const hoy = new Date();
-  const inicio = new Date(plazo.fechaInicio);
-  const diasTranscurridos = Math.max(
-    0,
-    Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24))
-  );
+  const diasTranscurridos = Math.max(0, diasTranscurridosAR(plazo.fechaInicio));
   const diasEfectivos = Math.min(diasTranscurridos, DURACION_DIAS);
   const intereses = plazo.monto * (plazo.tna / 100) * (diasEfectivos / DURACION_DIAS);
   return plazo.monto + intereses;
@@ -27,9 +23,7 @@ function calcularCrypto(position, prices) {
   let montoStaking = 0;
 
   if (position.staking && position.tnaStaking > 0) {
-    const hoy = new Date();
-    const inicio = new Date(position.fechaInicio);
-    const dias = Math.max(0, Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24)));
+    const dias = Math.max(0, diasTranscurridosAR(position.fechaInicio));
     montoStaking = monto * (position.tnaStaking / 100) * (dias / 365);
   }
 
