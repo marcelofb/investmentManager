@@ -26,11 +26,13 @@ export const formatCryptoPrice = (price) => {
   }).format(price);
 };
 
-export const formatBTC = (amount) =>
+export const formatQuantity = (amount) =>
   new Intl.NumberFormat('es-AR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+
+export const formatBTC = formatQuantity;
 
 export const formatDate = (date) =>
   new Date(date).toLocaleDateString('es-AR', {

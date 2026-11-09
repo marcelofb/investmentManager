@@ -28,6 +28,7 @@ export const plazosAPI = {
 
 export const cryptosAPI = {
   getAll: () => request('GET', '/cryptos'),
+  getBitcoinGoal: () => request('GET', '/cryptos/summary'),
   create: (data) => request('POST', '/cryptos', data),
   update: (id, data) => request('PUT', `/cryptos/${id}`, data),
   remove: (id) => request('DELETE', `/cryptos/${id}`),

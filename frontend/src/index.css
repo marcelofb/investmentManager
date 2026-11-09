@@ -134,6 +134,66 @@ body {
 .summary-card .s-value.green { color: var(--success); }
 .summary-card .s-value.blue { color: var(--primary); }
 
+.bitcoin-goal-card {
+  margin-bottom: 2rem;
+}
+
+.bitcoin-goal-heading {
+  margin-bottom: 1rem;
+}
+
+.bitcoin-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.bitcoin-goal-item {
+  min-width: 0;
+  padding: 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.bitcoin-goal-item .s-label {
+  margin-bottom: 0.25rem;
+}
+
+.bitcoin-goal-item .s-value {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.bitcoin-goal-detail,
+.bitcoin-goal-note,
+.bitcoin-goal-progress-label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.bitcoin-goal-progress-label {
+  margin-top: 1rem;
+}
+
+.bitcoin-goal-progress {
+  height: 0.5rem;
+  margin-top: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.bitcoin-goal-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+.bitcoin-goal-note {
+  margin-top: 0.75rem;
+}
+
 /* Cards grid */
 .cards-grid {
   display: grid;

@@ -6,6 +6,7 @@ import { getPrices } from './coinGecko.js';
 import { getDolarOficial } from './dolarApi.js';
 import { getPriceBA } from './yahooFinance.js';
 import { calculateLiquidityUSD } from './liquidezService.js';
+import { calculateBitcoinGoal } from './bitcoinGoalService.js';
 import { diasTranscurridosAR } from '../utils/dateUtils.js';
 
 const DURACION_DIAS = 365;
@@ -76,18 +77,17 @@ export async function getPatrimonioSnapshot() {
   const totalPlazoUSD = dolarOficial > 0 ? totalPlazoARS / dolarOficial : 0;
 
   let totalCryptoUSD = 0;
-  const btcApprox = positions.reduce(
-    (total, position) =>
-      position.activo === 'bitcoin' ? total + position.cantidad : total,
-    0
-  );
+  let bitcoinGoal;
   if (positions.length > 0) {
-    const ids = [...new Set(positions.map((position) => position.activo))];
+    const ids = [...new Set([...positions.map((position) => position.activo), 'bitcoin', 'tether'])];
     const prices = await getPrices(ids);
     totalCryptoUSD = positions.reduce(
       (acc, position) => acc + calcularCrypto(position, prices),
       0
     );
+    bitcoinGoal = calculateBitcoinGoal(positions, prices);
+  } else {
+    bitcoinGoal = calculateBitcoinGoal(positions, {});
   }
 
   const cedearsSummary = await calcularCedears(cedears, dolarOficial);
@@ -111,7 +111,7 @@ export async function getPatrimonioSnapshot() {
     cryptos: {
       totalUSD: round2(totalCryptoUSD),
       count: positions.length,
-      btcApprox,
+      ...bitcoinGoal,
     },
     cedears: {
       totalARS: round2(cedearsSummary.totalARS),

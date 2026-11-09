@@ -3,23 +3,33 @@ import { cryptosAPI } from '../services/api';
 import CryptoCard from '../components/CryptoCard';
 import CryptoForm from '../components/CryptoForm';
 import Modal from '../components/Modal';
-import { formatUSD, formatBTC } from '../utils/formatters';
+import { formatUSD, formatBTC, formatQuantity } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function CryptosPage() {
   const [positions, setPositions] = useState([]);
+  const [bitcoinGoal, setBitcoinGoal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
+  const refreshBitcoinGoal = async () => {
+    const summary = await cryptosAPI.getBitcoinGoal();
+    setBitcoinGoal(summary);
+  };
+
   const fetchPositions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await cryptosAPI.getAll();
+      const [data, goal] = await Promise.all([
+        cryptosAPI.getAll(),
+        cryptosAPI.getBitcoinGoal(),
+      ]);
       setPositions(data);
+      setBitcoinGoal(goal);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -44,6 +54,7 @@ export default function CryptosPage() {
         const created = await cryptosAPI.create(data);
         setPositions((prev) => [created, ...prev]);
       }
+      await refreshBitcoinGoal();
       handleClose();
     } catch (err) {
       setError(err.message);
@@ -62,6 +73,7 @@ export default function CryptosPage() {
     try {
       await cryptosAPI.remove(id);
       setPositions((prev) => prev.filter((p) => p._id !== id));
+      await refreshBitcoinGoal();
     } catch (err) {
       setError(err.message);
     }
@@ -113,6 +125,90 @@ export default function CryptosPage() {
             <div className="s-value">{positions.length}</div>
           </div>
         </div>
+      )}
+
+      {!loading && bitcoinGoal && (
+        <section className="summary-card bitcoin-goal-card">
+          <div className="s-label bitcoin-goal-heading">Escenario para alcanzar 1 BTC</div>
+          <div className="bitcoin-goal-grid">
+            <div className="bitcoin-goal-item">
+              <div className="s-label">BTC actuales</div>
+              <div className="s-value">{formatBTC(bitcoinGoal.btcApprox)} BTC</div>
+            </div>
+            <div className="bitcoin-goal-item">
+              <div className="s-label">Tether disponible</div>
+              <div className="s-value">{formatQuantity(bitcoinGoal.usdtAvailable)} USDT</div>
+              <div className="bitcoin-goal-detail">
+                {bitcoinGoal.usdtValueUSD === null
+                  ? 'Valor en USD no disponible'
+                  : `≈ ${formatUSD(bitcoinGoal.usdtValueUSD)}`}
+              </div>
+            </div>
+            <div className="bitcoin-goal-item">
+              <div className="s-label">BTC que podrías comprar</div>
+              <div className="s-value">
+                {bitcoinGoal.btcPurchasable === null
+                  ? 'No disponible'
+                  : `${formatBTC(bitcoinGoal.btcPurchasable)} BTC`}
+              </div>
+              <div className="bitcoin-goal-detail">
+                {bitcoinGoal.bitcoinPriceUSD === null
+                  ? 'Precio BTC no disponible'
+                  : `A ${formatUSD(bitcoinGoal.bitcoinPriceUSD)} / BTC`}
+              </div>
+            </div>
+            <div className="bitcoin-goal-item">
+              <div className="s-label">Total estimado</div>
+              <div className="s-value">
+                {bitcoinGoal.btcProjected === null
+                  ? 'No disponible'
+                  : `${formatBTC(bitcoinGoal.btcProjected)} BTC`}
+              </div>
+            </div>
+            <div className="bitcoin-goal-item">
+              <div className="s-label">Faltante para 1 BTC</div>
+              <div className="s-value">
+                {bitcoinGoal.btcRemaining === null
+                  ? 'No disponible'
+                  : `${formatBTC(bitcoinGoal.btcRemaining)} BTC`}
+              </div>
+            </div>
+            <div className="bitcoin-goal-item">
+              <div className="s-label">Precio máximo de BTC para llegar a 1</div>
+              <div className="s-value">
+                {bitcoinGoal.goalReached
+                  ? 'Objetivo alcanzado'
+                  : bitcoinGoal.targetBitcoinPriceUSD !== null
+                    ? `${formatUSD(bitcoinGoal.targetBitcoinPriceUSD)} / BTC`
+                    : bitcoinGoal.usdtAvailable === 0
+                      ? 'Sin USDT disponible'
+                      : 'No disponible'}
+              </div>
+            </div>
+          </div>
+          <div className="bitcoin-goal-progress-label">
+            Progreso estimado usando todo el USDT
+          </div>
+          <div
+            className="bitcoin-goal-progress"
+            role="progressbar"
+            aria-label="Progreso estimado hacia 1 BTC"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={Math.min(100, Math.max(0, (bitcoinGoal.btcProjected ?? bitcoinGoal.btcApprox) * 100))}
+          >
+            <div
+              className="bitcoin-goal-progress-fill"
+              style={{
+                width: `${Math.min(100, Math.max(0, (bitcoinGoal.btcProjected ?? bitcoinGoal.btcApprox) * 100))}%`,
+              }}
+            />
+          </div>
+          <p className="bitcoin-goal-note">
+            Estimación al precio consultado; no incluye comisiones ni diferencias de ejecución.
+            No suma recompensas estimadas de staking ni WBTC.
+          </p>
+        </section>
       )}
 
       {loading ? (

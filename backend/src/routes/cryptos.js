@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import CryptoPosition from '../models/CryptoPosition.js';
 import { getPrices } from '../services/coinGecko.js';
+import { calculateBitcoinGoal } from '../services/bitcoinGoalService.js';
 import { diasTranscurridosAR } from '../utils/dateUtils.js';
 
 const router = Router();
@@ -25,6 +26,17 @@ function calcularDatos(position, prices) {
     montoTotal: parseFloat(montoTotal.toFixed(2)),
   };
 }
+
+router.get('/summary', async (req, res) => {
+  try {
+    const positions = await CryptoPosition.find();
+    const ids = [...new Set([...positions.map((position) => position.activo), 'bitcoin', 'tether'])];
+    const prices = await getPrices(ids);
+    res.json(calculateBitcoinGoal(positions, prices));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.get('/', async (req, res) => {
   try {

@@ -129,6 +129,18 @@ export default function DashboardPage() {
             >
               BTC aprox.: {formatBTC(data.cryptos.btcApprox)} BTC
             </div>
+            <div className="breakdown-secondary">
+              {data.cryptos.goalReached
+                ? 'Objetivo 1 BTC alcanzado'
+                : data.cryptos.btcProjected === null
+                  ? 'Proyección no disponible'
+                  : `Proyección: ${formatBTC(data.cryptos.btcProjected)} BTC`}
+            </div>
+            {!data.cryptos.goalReached && data.cryptos.targetBitcoinPriceUSD !== null && (
+              <div className="breakdown-secondary">
+                Precio máximo para llegar: {formatUSD(data.cryptos.targetBitcoinPriceUSD)} / BTC
+              </div>
+            )}
             <div className="breakdown-meta">{data.cryptos.count} posición{data.cryptos.count !== 1 ? 'es' : ''}</div>
           </div>
           <div className="breakdown-pct">{pctCryptos.toFixed(1)}%</div>
