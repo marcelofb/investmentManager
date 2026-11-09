@@ -113,13 +113,6 @@ export default function CryptosPage() {
             <div className="s-label">Rendimiento staking</div>
             <div className="s-value green">{formatUSD(totalStaking)}</div>
           </div>
-          <div
-            className="summary-card"
-            title="BTC nativo registrado; no incluye recompensas de staking ni WBTC"
-          >
-            <div className="s-label">Tenencia BTC aproximada</div>
-            <div className="s-value">{formatBTC(btcApprox)} BTC</div>
-          </div>
           <div className="summary-card">
             <div className="s-label">Posiciones activas</div>
             <div className="s-value">{positions.length}</div>
