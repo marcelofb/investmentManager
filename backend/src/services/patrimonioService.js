@@ -76,6 +76,11 @@ export async function getPatrimonioSnapshot() {
   const totalPlazoUSD = dolarOficial > 0 ? totalPlazoARS / dolarOficial : 0;
 
   let totalCryptoUSD = 0;
+  const btcApprox = positions.reduce(
+    (total, position) =>
+      position.activo === 'bitcoin' ? total + position.cantidad : total,
+    0
+  );
   if (positions.length > 0) {
     const ids = [...new Set(positions.map((position) => position.activo))];
     const prices = await getPrices(ids);
@@ -106,6 +111,7 @@ export async function getPatrimonioSnapshot() {
     cryptos: {
       totalUSD: round2(totalCryptoUSD),
       count: positions.length,
+      btcApprox,
     },
     cedears: {
       totalARS: round2(cedearsSummary.totalARS),

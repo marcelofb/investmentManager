@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardAPI, liquidityAPI } from '../services/api';
-import { formatUSD, formatARS } from '../utils/formatters';
+import { formatUSD, formatARS, formatBTC } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 import Modal from '../components/Modal';
 import LiquidezForm from '../components/LiquidezForm';
@@ -123,7 +123,12 @@ export default function DashboardPage() {
           <div className="breakdown-info">
             <div className="breakdown-title">Cryptos</div>
             <div className="breakdown-usd">{formatUSD(data.cryptos.totalUSD)}</div>
-            <div className="breakdown-secondary">&nbsp;</div>
+            <div
+              className="breakdown-secondary"
+              title="BTC nativo registrado; no incluye recompensas de staking ni WBTC"
+            >
+              BTC aprox.: {formatBTC(data.cryptos.btcApprox)} BTC
+            </div>
             <div className="breakdown-meta">{data.cryptos.count} posición{data.cryptos.count !== 1 ? 'es' : ''}</div>
           </div>
           <div className="breakdown-pct">{pctCryptos.toFixed(1)}%</div>

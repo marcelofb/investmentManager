@@ -3,7 +3,7 @@ import { cryptosAPI } from '../services/api';
 import CryptoCard from '../components/CryptoCard';
 import CryptoForm from '../components/CryptoForm';
 import Modal from '../components/Modal';
-import { formatUSD } from '../utils/formatters';
+import { formatUSD, formatBTC } from '../utils/formatters';
 import ServerWakeLoader from '../components/ServerWakeLoader';
 
 export default function CryptosPage() {
@@ -76,6 +76,9 @@ export default function CryptosPage() {
   const totalStaking = positions
     .filter((p) => p.staking)
     .reduce((acc, p) => acc + p.montoStaking, 0);
+  const btcApprox = positions
+    .filter((p) => p.activo === 'bitcoin')
+    .reduce((total, p) => total + p.cantidad, 0);
 
   return (
     <div>
@@ -98,6 +101,13 @@ export default function CryptosPage() {
             <div className="s-label">Rendimiento staking</div>
             <div className="s-value green">{formatUSD(totalStaking)}</div>
           </div>
+          <div
+            className="summary-card"
+            title="BTC nativo registrado; no incluye recompensas de staking ni WBTC"
+          >
+            <div className="s-label">Tenencia BTC aproximada</div>
+            <div className="s-value">{formatBTC(btcApprox)} BTC</div>
+          </div>
           <div className="summary-card">
             <div className="s-label">Posiciones activas</div>
             <div className="s-value">{positions.length}</div>
@@ -113,6 +123,7 @@ export default function CryptosPage() {
           <p>
             Registrá tu primera posición para hacer seguimiento de tu portafolio.
           </p>
+          <p>Tenencia BTC aproximada: {formatBTC(btcApprox)} BTC.</p>
         </div>
       ) : (
         <div className="cards-grid">
